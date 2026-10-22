@@ -3,19 +3,36 @@ import { renderHeaderComponent } from "./header-component.js";
 import { posts, goToPage } from "../index.js";
 
 function escapeHtml(str) {
-  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function renderPostsPageComponent({ appEl, onLikeClick }) {
   if (!posts || posts.length === 0) {
-    appEl.innerHTML = `<div class="page-container"><div class="header-container"></div><p class="empty-posts">Пока нет постов</p></div>`;
-    renderHeaderComponent({ element: document.querySelector(".header-container") });
+    appEl.innerHTML = `
+      <div class="page-container">
+        <div class="header-container"></div>
+        <p class="empty-posts">Пока нет постов</p>
+      </div>`;
+    renderHeaderComponent({
+      element: document.querySelector(".header-container"),
+    });
     return;
   }
 
   const postsHtml = posts.map((post) => {
-    const likeIcon = post.isLiked ? "./assets/images/like-active.svg" : "./assets/images/like-not-active.svg";
-    const dateText = dateFns.formatDistanceToNow(new Date(post.createdAt), { addSuffix: true, locale: dateFns.locale.ru });
+    const likeIcon = post.isLiked
+      ? "./assets/images/like-active.svg"
+      : "./assets/images/like-not-active.svg";
+
+    const dateText = dateFns.formatDistanceToNow(new Date(post.createdAt), {
+      addSuffix: true,
+      locale: dateFns.locale.ru,
+    });
 
     return `
       <li class="post">
@@ -30,24 +47,46 @@ export function renderPostsPageComponent({ appEl, onLikeClick }) {
           <button data-post-id="${post.id}" class="like-button">
             <img src="${likeIcon}">
           </button>
-          <p class="post-likes-text">Нравится: <strong>${post.likes.length}</strong></p>
+          <p class="post-likes-text">
+            Нравится: <strong>${post.likes.length}</strong>
+          </p>
         </div>
         <p class="post-text">
           <span class="user-name">${escapeHtml(post.user.name)}</span>
           ${escapeHtml(post.description)}
         </p>
-        <p class="post-date">${dateText}</p>
-      </li>`;
+        <p class="post-date">
+          ${dateText}
+        </p>
+      </li>
+    `;
   }).join('');
 
-  appEl.innerHTML = `<div class="page-container"><div class="header-container"></div><ul class="posts">${postsHtml}</ul></div>`;
-  renderHeaderComponent({ element: document.querySelector(".header-container") });
+  const appHtml = `
+    <div class="page-container">
+      <div class="header-container"></div>
+      <ul class="posts">
+        ${postsHtml}
+      </ul>
+    </div>`;
+
+  appEl.innerHTML = appHtml;
+
+  renderHeaderComponent({
+    element: document.querySelector(".header-container"),
+  });
 
   for (let userEl of document.querySelectorAll(".post-header")) {
-    userEl.addEventListener("click", () => goToPage(USER_POSTS_PAGE, { userId: userEl.dataset.userId }));
+    userEl.addEventListener("click", () => {
+      goToPage(USER_POSTS_PAGE, {
+        userId: userEl.dataset.userId,
+      });
+    });
   }
 
   for (let button of document.querySelectorAll(".like-button")) {
-    button.addEventListener("click", () => onLikeClick({ postId: button.dataset.postId }));
+    button.addEventListener("click", () => {
+      onLikeClick({ postId: button.dataset.postId });
+    });
   }
 }
